@@ -75,7 +75,12 @@ markers = [
 [tool.coverage.run]
 branch = true
 source = ["src/trace_vault"]
-omit = ["src/trace_vault/providers/real.py"]
+# Optional, opt-in adapters that need extras / a live key — never on the
+# offline default path, so excluded from the offline coverage bar.
+omit = [
+    "src/trace_vault/providers/real.py",
+    "src/trace_vault/observability/otel.py",
+]
 
 [tool.coverage.report]
 show_missing = true

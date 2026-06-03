@@ -21,6 +21,11 @@
       "determinism": 1.0,
       "faithfulness": 1.0,
       "trajectory": 1.0
+    },
+    "refund.idempotent_retry": {
+      "determinism": 1.0,
+      "faithfulness": 1.0,
+      "trajectory": 1.0
     }
   }
 }
