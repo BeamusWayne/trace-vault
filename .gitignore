@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual env / uv
+.venv/
+venv/
+uv.lock
+
+# Test / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+
+# Runtime scratch the harness writes — never commit replay scratch worlds
+.vault_runs/
+*.tmp
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
