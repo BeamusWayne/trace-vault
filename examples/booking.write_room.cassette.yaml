@@ -1,0 +1,136 @@
+name: booking.write_room
+schema_version: 1
+match_mode: strict
+interactions:
+  - index: 0
+    request_key: cf6c82bc0f0e6d81
+    request_digest:
+      messages:
+        - role: system
+          content: You are a careful, tool-using agent. Use the provided tools to accomplish the user's goal, then give a short final answer. Only claim an action is complete after a tool result confirms it.
+          tool_calls: []
+          tool_call_id:
+          name:
+        - role: user
+          content: Book room A
+          tool_calls: []
+          tool_call_id:
+          name:
+      tools:
+        - calculator
+        - db_insert
+        - db_query
+        - read_file
+        - search
+        - transfer
+        - write_file
+    completion:
+      content: ''
+      tool_calls:
+        - id: b1
+          name: calculator
+          arguments:
+            expression: 100*0.85
+  - index: 1
+    request_key: fa1f47ef1259fbae
+    request_digest:
+      messages:
+        - role: system
+          content: You are a careful, tool-using agent. Use the provided tools to accomplish the user's goal, then give a short final answer. Only claim an action is complete after a tool result confirms it.
+          tool_calls: []
+          tool_call_id:
+          name:
+        - role: user
+          content: Book room A
+          tool_calls: []
+          tool_call_id:
+          name:
+        - role: assistant
+          content: ''
+          tool_calls:
+            - id: call_0
+              name: calculator
+              arguments:
+                expression: 100*0.85
+          tool_call_id:
+          name:
+        - role: tool
+          content: '85'
+          tool_calls: []
+          tool_call_id: call_0
+          name: calculator
+      tools:
+        - calculator
+        - db_insert
+        - db_query
+        - read_file
+        - search
+        - transfer
+        - write_file
+    completion:
+      content: ''
+      tool_calls:
+        - id: b2
+          name: db_insert
+          arguments:
+            table: bookings
+            values:
+              room: A
+              price: 85
+  - index: 2
+    request_key: bf43eff90737c545
+    request_digest:
+      messages:
+        - role: system
+          content: You are a careful, tool-using agent. Use the provided tools to accomplish the user's goal, then give a short final answer. Only claim an action is complete after a tool result confirms it.
+          tool_calls: []
+          tool_call_id:
+          name:
+        - role: user
+          content: Book room A
+          tool_calls: []
+          tool_call_id:
+          name:
+        - role: assistant
+          content: ''
+          tool_calls:
+            - id: call_0
+              name: calculator
+              arguments:
+                expression: 100*0.85
+          tool_call_id:
+          name:
+        - role: tool
+          content: '85'
+          tool_calls: []
+          tool_call_id: call_0
+          name: calculator
+        - role: assistant
+          content: ''
+          tool_calls:
+            - id: call_1
+              name: db_insert
+              arguments:
+                table: bookings
+                values:
+                  room: A
+                  price: 85
+          tool_call_id:
+          name:
+        - role: tool
+          content: inserted 1 row into bookings
+          tool_calls: []
+          tool_call_id: call_1
+          name: db_insert
+      tools:
+        - calculator
+        - db_insert
+        - db_query
+        - read_file
+        - search
+        - transfer
+        - write_file
+    completion:
+      content: Booked room A at 85 (15% off the 100 rack rate).
+      tool_calls: []
+meta: {}

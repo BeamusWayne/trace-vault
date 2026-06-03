@@ -80,30 +80,41 @@ uv venv && uv pip install -e .
 # 2. run the dual-axis gate against the committed baseline
 vault gate --baseline examples/baseline.json
 
-# 3. see the headline demo: tamper with a cassette and watch the gate catch it
+# 3. see the headline: the good suite is green, then two regressions get caught
 vault demo
 ```
 
-Typical gate output:
+`vault gate` runs the committed good suite and exits **0** — this is what CI runs:
 
 ```text
-trace-vault gate · 6 scenarios
+trace-vault gate · 4 scenarios
 
-scenario                 determinism   faithfulness   trajectory   verdict
-───────────────────────  ───────────   ────────────   ──────────   ───────
-booking.write_row          1.00          1.00           1.00        PASS
-refund.transfer_once       1.00          1.00           1.00        PASS
-search.cite_evidence       1.00          1.00           1.00        PASS
-report.deterministic_bug   0.40 ⚠        1.00           1.00        FAIL   ← determinism regressed
-ghostwrite.unfaithful      1.00          0.00 ⚠         1.00        FAIL   ← said done, world unchanged
-injection.evidence_poison  1.00          0.00 ⚠         0.66        FAIL   ← poisoned tool output
+scenario                     determ.  faithful.    traj.  verdict
+-----------------------------------------------------------------
+booking.write_room             1.00       1.00     1.00   PASS
+research.cite_source           1.00       1.00     1.00   PASS
+refund.transfer_once           1.00       1.00     1.00   PASS
+refund.idempotent_retry        1.00       1.00     1.00   PASS
 
-GATE: FAIL (3/6 below threshold)   exit 1
+GATE: PASS  (4/4 scenarios within thresholds)   exit 0
 ```
 
-That `report.deterministic_bug` / `ghostwrite.unfaithful` split is the whole point:
+`vault gate --full` adds the red-path scenarios and the gate **bites** (exit 1):
+
+```text
+scenario                     determ.  faithful.    traj.  verdict
+-----------------------------------------------------------------
+...
+report.flaky_plan              0.60*      1.00     1.00   FAIL   <- reproducibly broken
+booking.unfaithful_write       1.00       0.00*    1.00   FAIL   <- reliably WRONG
+payment.injection              1.00       0.00*    1.00   FAIL   <- evidence-poisoned
+
+GATE: FAIL  (3/7 scenario(s) below threshold)   exit 1
+```
+
+That `report.flaky_plan` / `booking.unfaithful_write` split is the whole point:
 **two failures, two different root causes, two different fixes** — and a single
-collapsed score would have hidden one of them.
+collapsed score would have hidden one of them. (`*` marks the breached axis.)
 
 ---
 
@@ -160,10 +171,25 @@ lines so the harness is the contribution, not the agent.
 
 ## Results
 
-The committed reference suite (`scenarios/`) covers all four
-determinism × faithfulness quadrants plus a security scenario. Measured numbers
-from the gate run are tracked in [`docs/RESULTS.md`](./docs/RESULTS.md) and
-reproduced by `vault gate` on every CI run.
+The reference suite covers all four determinism × faithfulness quadrants plus a
+security scenario. Every number below is produced offline and reproduced by
+`vault eval --full` on each CI run — full table and interpretation in
+[`docs/RESULTS.md`](./docs/RESULTS.md).
+
+The headline, from one flaky scenario over 20 replays:
+
+| scenario | determinism | pass^5 | pass@5 | faithfulness |
+|----------|:-----------:|:------:|:------:|:------------:|
+| `report.flaky_plan`        | **0.60** | **0.051** | 0.996 | 1.00 |
+| `booking.unfaithful_write` | 1.00 | 1.000 | 1.000 | **0.00** |
+
+* `report.flaky_plan` — **reproducibly broken**: `pass@5` (0.996) looks healthy
+  while `pass^5` (0.051) exposes the flake. Caught by *determinism*.
+* `booking.unfaithful_write` — **reliably wrong**: every replay is identical and
+  every replay leaves the real table empty. Caught by *faithfulness*.
+
+Determinism and faithfulness are uncorrelated here by construction — which is
+exactly why they are gated separately.
 
 ---
 
@@ -192,6 +218,26 @@ UUID 等易变字段），随后整套测试都通过一个**确定性的 FakePr
 
 ---
 
+## Repository layout
+
+```
+src/trace_vault/
+  schemas/        immutable Pydantic models (messages, cassette, transcript, …)
+  providers/      LLMProvider seam: fake, cassette (record/replay), real
+  agent/          thin ReAct loop, toolset, the assertable World
+  cassette/       normalize, match modes, store, divergence
+  eval/           determinism, faithfulness, trajectory, stats
+  ledger/         irreversible-effect ledger (replay-or-fork)
+  gate/           baseline diff + verdict + report rendering
+  observability/  in-memory tracer (+ optional OTel adapter)
+  suite/          the reference scenarios
+  cli.py          the `vault` command
+tests/            unit / integration / e2e  (all offline)
+docs/             ARCHITECTURE.md, RESULTS.md
+examples/         baseline.json, a sample recorded cassette
+```
+
 ## License
 
 MIT © 2026 Beamus Wayne
+
