@@ -8,6 +8,7 @@ import pytest
 
 from trace_vault.agent import Agent, default_registry
 from trace_vault.agent.world import World
+from trace_vault.errors import MaxStepsExceeded
 from trace_vault.providers import FakeProvider
 from trace_vault.schemas.messages import Completion, ToolCall
 from trace_vault.schemas.scenario import WorldSpec
@@ -64,6 +65,6 @@ def test_agent_raises_when_script_exhausts_without_final(tmp_path: Path) -> None
         for i in range(3)
     ]
     agent = Agent(default_registry(), max_steps=3)
-    with pytest.raises(Exception):
+    with pytest.raises(MaxStepsExceeded):
         agent.run("loop forever", FakeProvider(script), world, name="loop")
     world.close()

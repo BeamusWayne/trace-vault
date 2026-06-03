@@ -10,7 +10,7 @@ from trace_vault.cassette.matcher import CassetteCursor, classify_divergence
 from trace_vault.cassette.normalize import normalize_request, request_key
 from trace_vault.errors import DivergenceError
 from trace_vault.schemas.cassette import Cassette, Interaction
-from trace_vault.schemas.messages import Completion, Message, ToolCall
+from trace_vault.schemas.messages import Completion, Message
 
 
 def _digest_with_calls(calls: list[tuple[str, dict[str, Any]]]) -> dict[str, Any]:

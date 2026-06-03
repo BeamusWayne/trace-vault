@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 import trace_vault as tv
 from trace_vault.schemas import Completion, Message, ToolCall
@@ -16,7 +17,7 @@ def test_version_is_exposed() -> None:
 @pytest.mark.unit
 def test_schemas_are_frozen() -> None:
     m = Message(role="user", content="hi")
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         m.content = "mutated"  # type: ignore[misc]
 
 
