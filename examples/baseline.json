@@ -1,0 +1,26 @@
+{
+  "thresholds": {
+    "min_determinism": 1.0,
+    "min_faithfulness": 1.0,
+    "min_trajectory": 1.0,
+    "require_order": true
+  },
+  "tolerance": 0.0,
+  "scenarios": {
+    "booking.write_room": {
+      "determinism": 1.0,
+      "faithfulness": 1.0,
+      "trajectory": 1.0
+    },
+    "research.cite_source": {
+      "determinism": 1.0,
+      "faithfulness": 1.0,
+      "trajectory": 1.0
+    },
+    "refund.transfer_once": {
+      "determinism": 1.0,
+      "faithfulness": 1.0,
+      "trajectory": 1.0
+    }
+  }
+}
