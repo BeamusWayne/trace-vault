@@ -2,12 +2,11 @@
 
 Commands
 --------
-* ``vault gate --baseline b.json`` — run the reference suite and gate it; exit 1
+* ``vault gate --baseline b.json``, run the reference suite and gate it; exit 1
   on any regression. This is what CI runs.
-* ``vault eval [--full]`` — run a suite and print the dual-axis report.
-* ``vault demo`` — the headline: green suite, then two regressions the gate
-  catches on two independent axes.
-* ``vault version`` — print the version.
+* ``vault eval [--full]``, run a suite and print the dual-axis report.
+* ``vault demo``: run the good suite, then the full suite, to show both scores.
+* ``vault version``, print the version.
 """
 
 from __future__ import annotations
@@ -27,7 +26,7 @@ from .suite import full_suite, good_suite
 app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
-    help="trace-vault — a record/replay reliability gate for tool-using agents.",
+    help="trace-vault, a record/replay reliability gate for tool-using agents.",
 )
 
 _ANSI = {
@@ -113,22 +112,22 @@ def eval_cmd(
 
 @app.command()
 def demo(runs: int = typer.Option(12, help="Replays per scenario.")) -> None:
-    """Show that determinism and faithfulness are independent — and both gated."""
+    """Show that determinism and faithfulness are independent, and both gated."""
     agent = _agent()
     base = Baseline()
-    typer.echo("trace-vault demo  ·  determinism is not faithfulness\n")
+    typer.echo("trace-vault demo: determinism is not faithfulness\n")
     with tempfile.TemporaryDirectory() as tmp:
         good = run_gate(good_suite(), agent, base, root=f"{tmp}/g", runs=runs)
-        typer.echo("[1] The committed reference suite replays GREEN, offline, no key:\n")
+        typer.echo("[1] The committed reference suite replays green, offline, no key:\n")
         _echo_report(render_gate(good))
         full = run_gate(full_suite(), agent, base, root=f"{tmp}/f", runs=runs)
-        typer.echo("\n[2] Add two regressions — the gate catches BOTH, on different axes:\n")
+        typer.echo("\n[2] Add two regressions; the gate catches both, on different scores:\n")
         _echo_report(render_gate(full))
     typer.echo(
-        "\nTakeaway:\n"
-        "  report.flaky_plan        is reproducible-broken  -> caught by DETERMINISM\n"
-        "  booking.unfaithful_write is reliable-but-wrong    -> caught by FAITHFULNESS\n"
-        "A single collapsed score would have hidden one of them."
+        "\nThe two failures have different causes:\n"
+        "  report.flaky_plan         not reproducible   -> low determinism\n"
+        "  booking.unfaithful_write  reliably wrong      -> low faithfulness\n"
+        "A single combined score would hide one of them."
     )
 
 

@@ -63,6 +63,8 @@ def run_case(
     diverged_any = False
 
     for i in range(runs):
+        # Each replay gets its own world and ledger so runs can't bleed into one
+        # another; make_provider(i) lets a flaky case vary its output by run index.
         world = World(Path(root) / f"{scenario.name}-{i}", scenario.world)
         ledger = case.ledger_factory() if case.ledger_factory else None
         try:
@@ -76,16 +78,21 @@ def run_case(
             )
             signature: Signature | None = transcript.signature()
         except (DivergenceError, MaxStepsExceeded) as exc:
+            # A run that diverges or runs out of steps has no comparable
+            # trajectory, so its signature is None and it never counts as a match.
             diverged_any = True
             transcript = Transcript(
                 scenario=scenario.name, diverged=True, divergence_reason=str(exc)
             )
             signature = None
+        # Grade faithfulness while this run's world is still open, then close it.
         grades.append(grade_run(world, transcript, scenario))
         signatures.append(signature)
         transcripts.append(transcript)
         world.close()
 
+    # The canonical trajectory is the one the case pins, or the most common one
+    # across runs. Both determinism and trajectory grading compare against it.
     canonical = case.canonical or modal_signature(signatures)
     determinism = score_determinism(
         signatures, k=k, canonical=canonical, n_boot=n_boot, seed=seed

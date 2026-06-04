@@ -1,6 +1,6 @@
 """Core conversation primitives exchanged with an :class:`LLMProvider`.
 
-Every model is frozen — trace-vault treats agent state as immutable data and
+Every model is frozen, trace-vault treats agent state as immutable data and
 always builds new objects instead of mutating existing ones.
 """
 

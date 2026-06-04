@@ -1,4 +1,4 @@
-"""Schema for evaluation results — the two independent axes (Determinism and
+"""Schema for evaluation results, the two independent axes (Determinism and
 Faithfulness), trajectory grading, and the gate's pass/fail verdict.
 """
 
@@ -25,8 +25,8 @@ class DeterminismScore(BaseModel):
     passing: int  # runs whose trajectory matched the canonical signature
     rate: float
     k: int
-    pass_caret_k: float  # P(k randomly chosen runs ALL match) — pass^k
-    pass_at_k: float  # P(>=1 of k matches) — pass@k
+    pass_caret_k: float  # P(k randomly chosen runs ALL match), pass^k
+    pass_at_k: float  # P(>=1 of k matches), pass@k
     ci: Interval
     min_runs_hint: int
 
@@ -40,7 +40,7 @@ class FaithfulnessScore(BaseModel):
     faithful: int  # runs that satisfied every outcome check
     rate: float
     outcome_rate: float  # fraction of individual outcome checks satisfied
-    evidence_overlap: float  # [0, 1] — did the answer cite the tool evidence
+    evidence_overlap: float  # [0, 1], did the answer cite the tool evidence
     ci: Interval
 
 

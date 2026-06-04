@@ -1,6 +1,6 @@
 """The Faithfulness axis: did the run actually change the world as claimed?
 
-Graders assert real state — SQLite rows, files, scalar values — never transcript
+Graders assert real state, SQLite rows, files, scalar values, never transcript
 strings. An "I booked it" with no row is exactly the failure this axis exists to
 catch, and it is *independent* of whether the run was deterministic.
 """

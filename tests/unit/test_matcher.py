@@ -98,6 +98,6 @@ def test_unordered_cursor_matches_out_of_order() -> None:
         ),
     )
     cursor = CassetteCursor(cassette)
-    # Ask for B first, then A — both match despite recorded order.
+    # Ask for B first, then A, both match despite recorded order.
     assert cursor.next_completion(b).content == "rb"
     assert cursor.next_completion(a).content == "ra"

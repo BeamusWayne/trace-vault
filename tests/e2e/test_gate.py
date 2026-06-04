@@ -1,6 +1,6 @@
 """M4 end-to-end: the gate runs the whole pipeline and renders a verdict.
 
-These are the showcase tests — the full agent -> cassette -> eval -> gate path,
+These are the showcase tests, the full agent -> cassette -> eval -> gate path,
 entirely offline, with the determinism != faithfulness thesis asserted directly.
 """
 
@@ -39,7 +39,7 @@ def test_gate_catches_regressions_on_both_axes(tmp_path: Path) -> None:
     report = run_gate(full_suite(), Agent(default_registry()), Baseline(), root=tmp_path, runs=_RUNS)
     assert report.passed is False
     blob = "\n".join(report.failures)
-    # one determinism failure, one faithfulness failure — different root causes.
+    # one determinism failure, one faithfulness failure, different root causes.
     assert "report.flaky_plan: determinism" in blob
     assert "booking.unfaithful_write: faithfulness" in blob
 
@@ -86,4 +86,4 @@ def test_cli_demo_runs() -> None:
     result = CliRunner().invoke(app, ["demo", "--runs", "8"])
     assert result.exit_code == 0
     assert "determinism is not faithfulness" in result.stdout
-    assert "FAITHFULNESS" in result.stdout
+    assert "low faithfulness" in result.stdout

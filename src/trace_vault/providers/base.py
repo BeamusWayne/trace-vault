@@ -1,9 +1,9 @@
-"""The provider seam — the one interface every model plugs into.
+"""The provider interface.
 
-A provider turns the conversation-so-far plus the available tools into a single
-:class:`Completion`. That is the entire contract. ``FakeProvider`` and
-``CassetteProvider`` satisfy it offline; the optional real adapters satisfy it
-against a live API. Nothing above this layer knows which is in use.
+A provider turns the conversation so far plus the available tools into one
+:class:`Completion`. ``FakeProvider`` and ``CassetteProvider`` implement it
+offline; the optional real adapters implement it against a live API. Nothing
+above this layer knows which one is in use.
 """
 
 from __future__ import annotations

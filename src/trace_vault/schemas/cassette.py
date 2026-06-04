@@ -1,4 +1,4 @@
-"""Schema for recorded cassettes — the normalized record of an agent's
+"""Schema for recorded cassettes, the normalized record of an agent's
 LLM exchanges that lets the whole suite replay offline.
 """
 

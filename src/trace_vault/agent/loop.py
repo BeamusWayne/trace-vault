@@ -1,4 +1,4 @@
-"""The agent loop — a deliberately thin ReAct-style controller.
+"""The agent loop, a deliberately thin ReAct-style controller.
 
 ``plan -> act -> observe -> answer``. It asks the provider for the next step,
 runs any requested tools against the World, threads the observations back, and
@@ -7,8 +7,8 @@ stops on a tool-free completion. It is intentionally minimal (~1 screen): the
 
 Two optional seams keep the loop honest without bloating it:
 
-* ``ledger`` — guards ``effectful`` tools so they fire exactly once (replay-safe).
-* ``tracer`` — receives a structured event per step (e.g. OTel spans).
+* ``ledger``, guards ``effectful`` tools so they fire exactly once (replay-safe).
+* ``tracer``, receives a structured event per step (e.g. OTel spans).
 """
 
 from __future__ import annotations

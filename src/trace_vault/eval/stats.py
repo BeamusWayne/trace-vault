@@ -1,9 +1,9 @@
-"""Reliability statistics — exact where it can be, honest where it can't.
+"""Reliability statistics, exact where it can be, honest where it can't.
 
 * ``pass_at_k`` / ``pass_caret_k`` use the unbiased combinatorial estimators, so
   they're tested against hand-computed closed-form values.
 * ``bootstrap_ci`` is seeded, so a confidence interval is reproducible.
-* ``min_runs_for_halfwidth`` answers "did I even run enough times?" — a guard
+* ``min_runs_for_halfwidth`` answers "did I even run enough times?", a guard
   against celebrating a 2-point "win" that is really sampling noise.
 """
 

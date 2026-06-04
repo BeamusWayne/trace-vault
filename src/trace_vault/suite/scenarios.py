@@ -151,7 +151,7 @@ def refund_case() -> Case:
 
 def idempotent_refund_case() -> Case:
     """The agent retries the transfer (it timed out / it's unsure), but a shared
-    ledger makes the side effect idempotent — the customer is refunded exactly
+    ledger makes the side effect idempotent, the customer is refunded exactly
     once. Without the ledger this same script double-refunds and fails faithfulness."""
     scenario = Scenario(
         name="refund.idempotent_retry",
@@ -176,7 +176,7 @@ def idempotent_refund_case() -> Case:
     script = [
         Completion(tool_calls=(ToolCall(id="x1", name="transfer", arguments=args),)),
         Completion(tool_calls=(ToolCall(id="x2", name="transfer", arguments=args),)),  # retry, same key
-        Completion(content="Refund of 30 confirmed — single charge."),
+        Completion(content="Refund of 30 confirmed, single charge."),
     ]
     return _replay_case(scenario, script, ledger_factory=EffectLedger)
 

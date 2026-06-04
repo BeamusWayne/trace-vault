@@ -1,8 +1,8 @@
 """The assertable World: an in-process SQLite database + a temp filesystem.
 
-This is the ground truth faithfulness grades against. Tools really mutate it —
-only the LLM is faked — so "did the row get written / the file get created" is a
-real question with a real answer, not a transcript string match.
+Faithfulness grades against this. Tools really mutate it and only the LLM is
+faked, so "did the row get written, did the file get created" has a real answer
+instead of a transcript string match.
 
 The World is the one deliberately *mutable* object in trace-vault (it is an
 environment, like a test database). Domain data everywhere else is immutable.

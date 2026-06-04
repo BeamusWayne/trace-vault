@@ -1,11 +1,11 @@
-"""Request normalization — the heart of stable record/replay.
+"""Request normalization for stable record/replay.
 
 Two recordings of "the same" agent step differ in volatile noise: randomly
 generated tool-call ids, wall-clock timestamps, UUIDs. To match a replayed
-request against a recording we first scrub that noise on a *fixed allowlist* and
+request against a recording we first scrub that noise on a fixed allowlist and
 canonicalize tool-call ids to appearance order, then hash the result.
 
-Everything here is a pure function of its inputs — trivially unit-testable.
+All functions here are pure functions of their inputs.
 """
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ def request_key(messages: Sequence[Message], tools: Sequence[ToolSpec] = ()) -> 
 
 
 def tail_key(messages: Sequence[Message], tools: Sequence[ToolSpec] = ()) -> str:
-    """A relaxed key over only the *latest* turn — used by ``subset`` matching,
+    """A relaxed key over only the *latest* turn, used by ``subset`` matching,
     which tolerates differences in earlier conversation history."""
     norm = normalize_messages(messages)
     last = norm[-1] if norm else {}

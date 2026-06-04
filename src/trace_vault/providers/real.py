@@ -1,12 +1,12 @@
-"""Optional real LLM adapter — the model-agnostic proof, never on the offline path.
+"""Optional real LLM adapter. Not on the offline default path.
 
-This module is imported lazily and only when you explicitly opt in with an API
-key; the default Fake/Cassette path never touches it, so the offline-green
-invariant holds. It is excluded from coverage for the same reason.
+This module is imported lazily and only when you opt in with an API key; the
+default Fake/Cassette path never touches it, so the offline test suite stays
+offline. It is excluded from coverage for the same reason.
 
-A single OpenAI-compatible adapter covers OpenAI, Ollama, vLLM, Groq, Together,
-and any other Chat Completions endpoint via ``base_url`` — that breadth is the
-point. (An Anthropic adapter is a small addition following the same shape.)
+One OpenAI-compatible adapter covers OpenAI, Ollama, vLLM, Groq, Together, and
+any other Chat Completions endpoint via ``base_url``. (An Anthropic adapter
+follows the same shape.)
 """
 
 from __future__ import annotations

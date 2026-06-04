@@ -1,10 +1,10 @@
-"""Deterministic, offline providers — the CI default test doubles.
+"""Deterministic, offline providers, the CI default test doubles.
 
 * :class:`FakeProvider` replays a fixed script of completions in order.
 * :class:`KeyedFakeProvider` answers by normalized request key (same input ->
   same output, regardless of call order).
 * :class:`StochasticFakeProvider` models temperature>0 sampling *deterministically*
-  given a seed, so we can manufacture — and then exactly measure — non-determinism.
+  given a seed, so we can manufacture, and then exactly measure, non-determinism.
 
 None of them touch the network. All of them are reproducible.
 """
@@ -44,7 +44,7 @@ class FakeProvider:
 
 
 class KeyedFakeProvider:
-    """Answers by normalized request key — order-independent and idempotent."""
+    """Answers by normalized request key, order-independent and idempotent."""
 
     name = "fake-keyed"
 
@@ -71,7 +71,7 @@ class StochasticFakeProvider:
     """Models sampling noise deterministically.
 
     ``variants`` is a per-step list of completion options. Given a seed, the
-    provider makes the *same* choices every time — so a fleet of seeds 0..N-1
+    provider makes the *same* choices every time, so a fleet of seeds 0..N-1
     produces a reproducible distribution of trajectories that the determinism
     axis can measure exactly.
     """

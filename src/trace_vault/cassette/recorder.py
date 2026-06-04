@@ -1,7 +1,7 @@
 """Convenience: run an agent once and capture its cassette.
 
 Kept out of ``cassette/__init__`` so importing the cassette package never pulls
-the agent layer in — this module is the one place the two meet.
+the agent layer in, this module is the one place the two meet.
 """
 
 from __future__ import annotations

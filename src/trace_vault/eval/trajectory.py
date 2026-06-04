@@ -1,6 +1,6 @@
 """Trajectory grading: process-level quality of the canonical run.
 
-Order-tolerant by design — many correct plans differ only in the order of
+Order-tolerant by design, many correct plans differ only in the order of
 independent steps, so we grade tool *selection*, argument match, subsequence
 *order*, and step *efficiency* separately rather than demanding an exact match.
 """

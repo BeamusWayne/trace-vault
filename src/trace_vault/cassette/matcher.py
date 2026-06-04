@@ -3,13 +3,13 @@
 A :class:`CassetteCursor` consumes a cassette during replay under one of three
 match modes:
 
-* **strict** — interactions must replay in the recorded order; any difference is
+* **strict**, interactions must replay in the recorded order; any difference is
   an immediate, classified :class:`DivergenceError`.
-* **unordered** — the same set of requests may arrive in any order.
-* **subset** — match only the latest turn, tolerating differences in earlier
+* **unordered**, the same set of requests may arrive in any order.
+* **subset**, match only the latest turn, tolerating differences in earlier
   history (useful when only the most recent observation should drive the step).
 
-When a request doesn't match, we don't just say "miss" — we classify *why*
+When a request doesn't match, we don't just say "miss", we classify *why*
 (``tool-name`` / ``call-order`` / ``arg-mismatch`` / ``prompt-hash``), because a
 useful reliability gate tells you what changed.
 """

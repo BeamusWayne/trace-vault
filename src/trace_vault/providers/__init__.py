@@ -1,4 +1,4 @@
-"""Providers — the model-agnostic seam.
+"""Providers, the model-agnostic seam.
 
 Only the offline doubles are imported here. Real SDK adapters live in
 ``providers.real`` and are imported lazily (and only via optional extras) so the

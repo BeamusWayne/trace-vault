@@ -46,7 +46,7 @@ class DivergenceError(TraceVaultError):
 
 
 class NetworkBlockedError(TraceVaultError):
-    """Raised if replay ever attempts a real network call — the offline invariant
+    """Raised if replay ever attempts a real network call, the offline invariant
     is enforced, not assumed."""
 
 

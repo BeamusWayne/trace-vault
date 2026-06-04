@@ -1,4 +1,4 @@
-"""Schema for an agent run transcript — the observable trajectory used by the
+"""Schema for an agent run transcript, the observable trajectory used by the
 trajectory grader and the determinism axis.
 """
 

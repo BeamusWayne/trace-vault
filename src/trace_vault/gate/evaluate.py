@@ -1,6 +1,6 @@
 """The gate verdict: run a suite, compare to the baseline, pass or fail.
 
-The two axes are checked *independently* — a scenario can fail on determinism,
+The two axes are checked *independently*, a scenario can fail on determinism,
 on faithfulness, or on trajectory, and the failure message says which. That
 separation is the whole thesis made operational.
 """

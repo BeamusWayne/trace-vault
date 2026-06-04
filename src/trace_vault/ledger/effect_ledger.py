@@ -51,7 +51,7 @@ class EffectLedger:
             # replay-or-fork: do NOT re-execute the irreversible effect. We return
             # the recorded result with its *content unchanged* (the annotation goes
             # in `data`) so a cassette recorded without a ledger still replays
-            # byte-for-byte — the de-duplication is invisible to the trajectory.
+            # byte-for-byte, the de-duplication is invisible to the trajectory.
             annotated = {**prior.result.data, "ledger_replayed": True}
             return prior.result.model_copy(update={"data": annotated})
         result = run()

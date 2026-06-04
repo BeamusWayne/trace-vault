@@ -1,7 +1,7 @@
-"""Render a :class:`GateReport` as a compact, scannable text table.
+"""Render a :class:`GateReport` as a compact text table.
 
-The two axes sit side by side on purpose — the whole point is to *see* a run that
-is perfectly deterministic and yet unfaithful (or vice-versa) at a glance.
+The two scores sit side by side so a run that is deterministic yet unfaithful
+(or the reverse) is visible at a glance.
 """
 
 from __future__ import annotations

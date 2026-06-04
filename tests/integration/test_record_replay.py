@@ -1,4 +1,4 @@
-"""M2 integration: record once, replay forever — and catch any tampering."""
+"""M2 integration: record once, replay forever, and catch any tampering."""
 
 from __future__ import annotations
 

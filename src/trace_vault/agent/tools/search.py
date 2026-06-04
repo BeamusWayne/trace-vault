@@ -1,7 +1,7 @@
 """A deterministic search tool over the world's ``documents`` table.
 
 Real search is the classic source of untrusted, model-steering tool output, so
-this tool deliberately returns document *bodies* verbatim — which is exactly how
+this tool deliberately returns document *bodies* verbatim, which is exactly how
 an indirect prompt-injection scenario gets its foothold.
 """
 

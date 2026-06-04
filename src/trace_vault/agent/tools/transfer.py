@@ -2,7 +2,7 @@
 
 This is the one tool with a real-world consequence. It is marked ``effectful``
 so the irreversible-effect ledger can guarantee it fires *exactly once* across
-replays and rollbacks — the "don't double-charge the customer" invariant.
+replays and rollbacks, the "don't double-charge the customer" invariant.
 """
 
 from __future__ import annotations

@@ -1,13 +1,13 @@
-"""trace-vault — a record/replay reliability gate for tool-using agents.
+"""trace-vault: a record/replay reliability gate for tool-using agents.
 
-trace-vault records an agent's LLM + tool exchanges into normalized cassettes,
-replays them deterministically offline, and gates CI on two *independent* axes:
+It records an agent's LLM and tool exchanges into normalized cassettes, replays
+them deterministically offline, and gates CI on two independent scores:
 
-* **Determinism** — does the agent take the same trajectory every replay?
-* **Faithfulness** — did the run actually change the world as claimed?
+* Determinism: does the agent take the same trajectory every replay?
+* Faithfulness: did the run change the world it claimed to?
 
-The two are measured and gated separately, on purpose: an agent can be perfectly
-reproducible and still wrong, and trace-vault is built to surface exactly that.
+The two are measured and gated separately. An agent can be perfectly reproducible
+and still wrong, and a single combined score would hide that.
 """
 
 from __future__ import annotations

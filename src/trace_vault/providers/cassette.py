@@ -6,7 +6,7 @@
   a classified :class:`DivergenceError` the instant the agent strays from the
   recording.
 
-The replay provider has no network code at all — "offline" is a structural
+The replay provider has no network code at all, "offline" is a structural
 property here, not a runtime flag.
 """
 
