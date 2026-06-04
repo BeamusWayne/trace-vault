@@ -7,23 +7,21 @@ catch, and it is *independent* of whether the run was deterministic.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 
 from ..agent.world import World
 from ..schemas.report import FaithfulnessScore, Interval
 from ..schemas.scenario import OutcomeCheck, Scenario
 from ..schemas.transcript import Transcript
+from ..sql_safe import safe_identifier
 from .stats import bootstrap_ci
-
-_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def _ident(name: object) -> str:
-    text = str(name)
-    if not _IDENT.match(text):
-        raise ValueError(f"unsafe SQL identifier in outcome check: {text!r}")
-    return text
+    try:
+        return safe_identifier(name)
+    except ValueError as exc:
+        raise ValueError(f"unsafe SQL identifier in outcome check: {name!r}") from exc
 
 
 def _where(filters: dict) -> tuple[str, list]:

@@ -31,7 +31,6 @@ class Case:
     scenario: Scenario
     make_provider: Callable[[int], LLMProvider]
     canonical: Signature | None = None
-    trajectory_mode: str = "strict"
     ledger_factory: Callable[[], LedgerProtocol] | None = None
 
 
@@ -101,7 +100,6 @@ def run_case(
     trajectory = score_trajectory(
         _representative(transcripts, signatures, canonical),
         scenario.expected_tools,
-        mode=case.trajectory_mode,
     )
     return TaskReport(
         scenario=scenario.name,

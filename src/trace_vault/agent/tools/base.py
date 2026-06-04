@@ -7,7 +7,7 @@ is ``effectful`` (has an irreversible side effect) so the ledger can protect it.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -36,7 +36,7 @@ class Tool:
 
     name: str = ""
     description: str = ""
-    parameters: dict[str, Any] = {}
+    parameters: ClassVar[dict[str, Any]] = {}
     effectful: bool = False
 
     def spec(self) -> ToolSpec:

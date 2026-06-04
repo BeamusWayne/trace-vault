@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from ..world import World
 from .base import Tool, ToolResult
@@ -11,7 +11,7 @@ from .base import Tool, ToolResult
 class ReadFileTool(Tool):
     name = "read_file"
     description = "Read a UTF-8 text file from the workspace."
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {"path": {"type": "string"}},
         "required": ["path"],
@@ -28,7 +28,7 @@ class ReadFileTool(Tool):
 class WriteFileTool(Tool):
     name = "write_file"
     description = "Write a UTF-8 text file into the workspace."
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {"path": {"type": "string"}, "content": {"type": "string"}},
         "required": ["path", "content"],

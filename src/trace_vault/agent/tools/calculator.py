@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import ast
 import operator
-from typing import Any
+from typing import Any, ClassVar
 
 from ...errors import ToolError
 from ..world import World
@@ -31,7 +31,7 @@ def safe_eval(expression: str) -> float:
     that is not pure arithmetic over numbers."""
     try:
         tree = ast.parse(expression, mode="eval")
-    except SyntaxError as exc:  # noqa: PERF203
+    except SyntaxError as exc:
         raise ToolError(f"invalid expression: {expression!r}") from exc
 
     def _eval(node: ast.AST) -> float:
@@ -51,7 +51,7 @@ def safe_eval(expression: str) -> float:
 class CalculatorTool(Tool):
     name = "calculator"
     description = "Evaluate a pure arithmetic expression (e.g. '120 * 0.85')."
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {"expression": {"type": "string"}},
         "required": ["expression"],

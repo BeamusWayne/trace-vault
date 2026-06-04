@@ -16,7 +16,6 @@ from .errors import (
     CassetteError,
     DivergenceError,
     MaxStepsExceeded,
-    NetworkBlockedError,
     ToolError,
     TraceVaultError,
 )
@@ -39,7 +38,6 @@ __all__ = [
     "DivergenceError",
     "MaxStepsExceeded",
     "Message",
-    "NetworkBlockedError",
     "Scenario",
     "ToolCall",
     "ToolError",

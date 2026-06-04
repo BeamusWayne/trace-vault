@@ -45,6 +45,6 @@ def load_cassette(path: str | Path) -> Cassette:
     try:
         with path.open("r", encoding="utf-8") as handle:
             raw = _yaml.load(handle)
-    except Exception as exc:  # noqa: BLE001 - surface any parse error uniformly
+    except Exception as exc:  # surface any parse error uniformly
         raise CassetteError(f"could not parse cassette {path}: {exc}") from exc
     return Cassette.model_validate(_to_plain(raw))

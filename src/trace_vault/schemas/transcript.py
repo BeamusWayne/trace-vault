@@ -4,6 +4,8 @@ trajectory grader and the determinism axis.
 
 from __future__ import annotations
 
+import json
+
 from pydantic import BaseModel, ConfigDict
 
 from .messages import ToolCall
@@ -49,8 +51,6 @@ class Transcript(BaseModel):
         """A canonical, comparable fingerprint of the trajectory: an ordered
         tuple of ``(tool_name, sorted-args-json)`` pairs. Two runs are
         trajectory-identical iff their signatures are equal."""
-        import json
-
         out: list[tuple[str, str]] = []
         for call in self.tool_calls:
             args = json.dumps(call.arguments, sort_keys=True, ensure_ascii=False)

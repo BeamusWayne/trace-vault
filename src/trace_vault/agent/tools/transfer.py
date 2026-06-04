@@ -7,7 +7,7 @@ replays and rollbacks, the "don't double-charge the customer" invariant.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from ..world import World
 from .base import Tool, ToolResult
@@ -19,7 +19,7 @@ class TransferTool(Tool):
         "Transfer money between accounts. IRREVERSIBLE. "
         "Provide an idempotency_key to make retries safe."
     )
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "from_account": {"type": "string"},

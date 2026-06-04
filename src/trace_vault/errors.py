@@ -45,11 +45,6 @@ class DivergenceError(TraceVaultError):
         super().__init__(f"{prefix}: {message}")
 
 
-class NetworkBlockedError(TraceVaultError):
-    """Raised if replay ever attempts a real network call, the offline invariant
-    is enforced, not assumed."""
-
-
 class MaxStepsExceeded(TraceVaultError):
     """The agent exceeded the scenario's step budget without finishing."""
 

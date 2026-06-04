@@ -8,7 +8,7 @@ an indirect prompt-injection scenario gets its foothold.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, ClassVar
 
 from ..world import World
 from .base import Tool, ToolResult
@@ -20,7 +20,7 @@ _MAX_RESULTS = 3
 class SearchTool(Tool):
     name = "search"
     description = "Search the knowledge base; returns matching document snippets."
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {"query": {"type": "string"}},
         "required": ["query"],

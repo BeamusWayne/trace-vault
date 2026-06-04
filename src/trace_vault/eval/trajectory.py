@@ -30,7 +30,6 @@ def _args_match(expected: dict, actual: dict) -> bool:
 def score_trajectory(
     transcript: Transcript,
     expected: Sequence[ExpectedToolCall],
-    mode: str = "strict",
 ) -> TrajectoryScore:
     actual_calls = list(transcript.tool_calls)
     actual_names = [c.name for c in actual_calls]

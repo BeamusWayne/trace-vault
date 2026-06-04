@@ -9,21 +9,19 @@ discipline applied to a tool surface.
 from __future__ import annotations
 
 import json
-import re
-from typing import Any
+from typing import Any, ClassVar
 
 from ...errors import ToolError
+from ...sql_safe import safe_identifier
 from ..world import World
 from .base import Tool, ToolResult
 
-_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-
 
 def _ident(name: object) -> str:
-    text = str(name)
-    if not _IDENT.match(text):
-        raise ToolError(f"unsafe SQL identifier: {text!r}")
-    return text
+    try:
+        return safe_identifier(name)
+    except ValueError as exc:
+        raise ToolError(str(exc)) from exc
 
 
 def _validate_columns(world: World, table: str, cols: list[str]) -> None:
@@ -36,7 +34,7 @@ def _validate_columns(world: World, table: str, cols: list[str]) -> None:
 class DBQueryTool(Tool):
     name = "db_query"
     description = "Read rows from a table, optionally filtered by exact column matches."
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "table": {"type": "string"},
@@ -68,7 +66,7 @@ class DBQueryTool(Tool):
 class DBInsertTool(Tool):
     name = "db_insert"
     description = "Insert a row into a table from a column->value mapping."
-    parameters: dict[str, Any] = {
+    parameters: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             "table": {"type": "string"},

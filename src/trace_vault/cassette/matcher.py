@@ -88,7 +88,7 @@ class CassetteCursor:
             )
         interaction = interactions[self._pos]
         if request_key(messages, tools) != interaction.request_key:
-            self._raise_divergence(messages, tools, interaction, step=self._pos)
+            raise self._divergence_error(messages, tools, interaction, step=self._pos)
         self._pos += 1
         return interaction.completion
 
@@ -112,7 +112,7 @@ class CassetteCursor:
             raise DivergenceError(
                 "exhausted", "no unconsumed interactions remain to match", step=-1
             )
-        self._raise_divergence(messages, tools, reference, step=len(self._consumed))
+        raise self._divergence_error(messages, tools, reference, step=len(self._consumed))
 
     # -- helpers -------------------------------------------------------------
 
@@ -122,16 +122,16 @@ class CassetteCursor:
                 return interaction
         return None
 
-    def _raise_divergence(
+    def _divergence_error(
         self,
         messages: Sequence[Message],
         tools: Sequence[ToolSpec],
         interaction: Interaction,
         *,
         step: int,
-    ) -> None:
+    ) -> DivergenceError:
         current = normalize_request(messages, tools)
         kind, detail = classify_divergence(current, interaction.request_digest)
-        raise DivergenceError(
+        return DivergenceError(
             kind, detail, step=step, expected=interaction.request_digest, actual=current
         )

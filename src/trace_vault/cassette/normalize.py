@@ -38,8 +38,7 @@ def scrub_text(text: str) -> str:
     timestamps.
     """
     text = _UUID.sub(UUID_PLACEHOLDER, text)
-    text = _TIMESTAMP.sub(TIMESTAMP_PLACEHOLDER, text)
-    return text
+    return _TIMESTAMP.sub(TIMESTAMP_PLACEHOLDER, text)
 
 
 def _scrub_value(value: Any) -> Any:
