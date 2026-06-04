@@ -18,9 +18,10 @@ keeps conflating: **Determinism** and **Faithfulness**.*
 </div>
 
 <p align="center">
-  <img src="./docs/assets/gate-demo.svg" width="760"
+  <img src="./docs/assets/gate-demo.gif" width="730"
        alt="vault gate --full: four PASS scenarios, then three FAIL — one flaky (determinism), two unfaithful (faithfulness)">
 </p>
+<p align="center"><sub><code>vault gate --full</code> — green suite, then three regressions caught on two independent axes.</sub></p>
 
 > One flaky scenario, two unfaithful ones — caught on **two independent axes**.
 > The agent that scores `faithfulness 0.00` is *perfectly reproducible*; the one
