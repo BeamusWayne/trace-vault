@@ -17,6 +17,15 @@ keeps conflating: **Determinism** and **Faithfulness**.*
 
 </div>
 
+<p align="center">
+  <img src="./docs/assets/gate-demo.svg" width="760"
+       alt="vault gate --full: four PASS scenarios, then three FAIL — one flaky (determinism), two unfaithful (faithfulness)">
+</p>
+
+> One flaky scenario, two unfaithful ones — caught on **two independent axes**.
+> The agent that scores `faithfulness 0.00` is *perfectly reproducible*; the one
+> that scores `determinism 0.60` is *perfectly harmless*. A single score hides one.
+
 ---
 
 ## Why trace-vault
@@ -71,6 +80,18 @@ replay forever, offline ──► agent loop ──► dual-axis eval ──► 
 
 ---
 
+## When you'd reach for it
+
+- **Gate an agent PR in CI** — block a merge that makes the agent less
+  reproducible *or* less correct, with one `vault gate` call and a non-zero exit.
+- **Catch "looks-fine" regressions** — a refactor that quietly stops writing the
+  row still passes every transcript check; faithfulness (which reads the DB)
+  catches it.
+- **Quantify flakiness honestly** — `pass^k` and a confidence interval instead of
+  "seems to work on my machine."
+- **Prove a guardrail works** — record an attack (e.g. prompt injection) once and
+  keep the gate red until the defense lands.
+
 ## Quickstart
 
 ```bash
@@ -118,6 +139,90 @@ collapsed score would have hidden one of them. (`*` marks the breached axis.)
 
 ---
 
+## Use it on your own agent
+
+trace-vault doesn't care how your agent is built — it only needs a provider that
+returns the next step. Point it at your agent in four steps. The full runnable
+version is [`examples/use_on_your_agent.py`](./examples/use_on_your_agent.py)
+(`python examples/use_on_your_agent.py` → prints the report, exits 0/1).
+
+**1 — Describe the task as data.** The world your tools act on, the goal, the plan
+you expect, and outcome checks that assert *real state* (a row's value), not the
+transcript:
+
+```python
+from trace_vault.schemas import Scenario, WorldSpec, ExpectedToolCall, OutcomeCheck
+
+scenario = Scenario(
+    name="discount.apply",
+    goal="Apply 20% off order 1001 (rack total 200) and persist the new total.",
+    world=WorldSpec(sql_setup=("CREATE TABLE order_totals (id INTEGER, total REAL);",)),
+    expected_tools=(ExpectedToolCall(name="calculator"), ExpectedToolCall(name="db_insert")),
+    outcome_checks=(OutcomeCheck(
+        kind="db_value_equals",
+        params={"table": "order_totals", "column": "total",
+                "where": {"id": 1001}, "expected": 160.0}),),
+    evidence=("160",),
+)
+```
+
+**2 — Record your agent once.** Wrap your real provider; the recorder writes a
+normalized cassette you commit and replay forever:
+
+```python
+from trace_vault.cassette.recorder import record_run
+from trace_vault.cassette.store import save_cassette
+
+_, cassette = record_run(agent, scenario.goal, YourProvider(), world, name=scenario.name)
+save_cassette(cassette, "cassettes/discount.apply.yaml")
+```
+
+Your provider is anything with `complete(messages, tools) -> Completion`: a
+~25-line adapter (see [`providers/real.py`](./src/trace_vault/providers/real.py)
+for an OpenAI-compatible one that also covers Ollama / vLLM / Groq), or a scripted
+`FakeProvider([...])` for tests.
+
+**3 — Replay N times and score both axes:**
+
+```python
+from trace_vault.eval.runner import Case, run_case
+from trace_vault.providers import CassetteProvider
+
+case = Case(scenario=scenario, make_provider=lambda i: CassetteProvider(cassette))
+report = run_case(case, agent, root="/tmp/runs", runs=20, k=5)
+print(report.determinism.rate, report.faithfulness.rate)   # 1.0 1.0
+```
+
+**4 — Gate it, and wire into CI:**
+
+```python
+from trace_vault.gate import Baseline, evaluate_gate, render_gate
+
+gate = evaluate_gate([report], Baseline())   # thresholds default to 1.0
+print(render_gate(gate))
+raise SystemExit(0 if gate.passed else 1)
+```
+
+Need an irreversible tool (a charge, an email) to fire exactly once across
+retries? Pass `ledger_factory=EffectLedger` to the `Case` — see
+[`refund.idempotent_retry`](./src/trace_vault/suite/scenarios.py).
+
+## CLI reference
+
+| command | what it does |
+|---------|--------------|
+| `vault gate -b baseline.json` | run the good suite, gate vs baseline, **exit 0/1** — this is what CI runs |
+| `vault gate -b baseline.json --full` | also include the red-path scenarios (they fail by design) |
+| `vault eval [--full]` | run a suite and print the dual-axis report, no gating |
+| `vault demo` | the headline: green suite, then two regressions caught on two axes |
+| `vault version` | print the version |
+
+Common flags: `--runs N` (replays per scenario, default 20), `--k K`
+(for `pass^k`/`pass@k`), `--seed S`. Output is colorized on a terminal and plain
+when piped or under `NO_COLOR`.
+
+---
+
 ## Architecture
 
 trace-vault is built as **many small, immutable-data modules** (no module mutates
@@ -125,7 +230,7 @@ shared state; every update returns a new object). Six layers:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  cli  ·  vault record | replay | eval | gate | demo                    │
+│  cli  ·  vault gate | eval | demo | version                            │
 ├──────────────────────────────────────────────────────────────────────┤
 │  gate     baseline diff + verdict           ledger   replay-or-fork    │
 │           (exit 0/1 on regression)                   (no double-charge)│

@@ -12,6 +12,8 @@ Commands
 
 from __future__ import annotations
 
+import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -27,6 +29,43 @@ app = typer.Typer(
     no_args_is_help=True,
     help="trace-vault — a record/replay reliability gate for tool-using agents.",
 )
+
+_ANSI = {
+    "reset": "\033[0m",
+    "bold": "\033[1m",
+    "green": "\033[32m",
+    "red": "\033[31m",
+    "yellow": "\033[33m",
+}
+
+
+def _use_color() -> bool:
+    # Color only on a real terminal; CI captures (and NO_COLOR) stay plain, so
+    # the report text the tests assert on is unchanged.
+    return sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+
+
+def _style(text: str) -> str:
+    if not _use_color():
+        return text
+    g, r, y, b, z = (_ANSI[k] for k in ("green", "red", "yellow", "bold", "reset"))
+    out: list[str] = []
+    for line in text.split("\n"):
+        if line.startswith("GATE: PASS"):
+            out.append(f"{b}{g}{line}{z}")
+        elif line.startswith("GATE: FAIL"):
+            out.append(f"{b}{r}{line}{z}")
+        else:
+            out.append(
+                line.replace("PASS", f"{g}PASS{z}")
+                .replace("FAIL", f"{r}FAIL{z}")
+                .replace("*", f"{y}*{z}")
+            )
+    return "\n".join(out)
+
+
+def _echo_report(text: str) -> None:
+    typer.echo(_style(text))
 
 
 def _agent() -> Agent:
@@ -54,7 +93,7 @@ def gate(
     cases = full_suite() if full else good_suite()
     with tempfile.TemporaryDirectory() as tmp:
         report = run_gate(cases, _agent(), base, root=tmp, runs=runs, k=k, seed=seed)
-    typer.echo(render_gate(report))
+    _echo_report(render_gate(report))
     raise typer.Exit(0 if report.passed else 1)
 
 
@@ -69,7 +108,7 @@ def eval_cmd(
     cases = full_suite() if full else good_suite()
     with tempfile.TemporaryDirectory() as tmp:
         report = run_gate(cases, _agent(), Baseline(), root=tmp, runs=runs, k=k, seed=seed)
-    typer.echo(render_gate(report))
+    _echo_report(render_gate(report))
 
 
 @app.command()
@@ -81,10 +120,10 @@ def demo(runs: int = typer.Option(12, help="Replays per scenario.")) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         good = run_gate(good_suite(), agent, base, root=f"{tmp}/g", runs=runs)
         typer.echo("[1] The committed reference suite replays GREEN, offline, no key:\n")
-        typer.echo(render_gate(good))
+        _echo_report(render_gate(good))
         full = run_gate(full_suite(), agent, base, root=f"{tmp}/f", runs=runs)
         typer.echo("\n[2] Add two regressions — the gate catches BOTH, on different axes:\n")
-        typer.echo(render_gate(full))
+        _echo_report(render_gate(full))
     typer.echo(
         "\nTakeaway:\n"
         "  report.flaky_plan        is reproducible-broken  -> caught by DETERMINISM\n"
