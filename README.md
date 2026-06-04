@@ -87,6 +87,9 @@ than the recording, trace-vault stops with a typed error that says what changed
 
 ## Quickstart
 
+New here? The [step-by-step tutorial](./docs/TUTORIAL.md) builds a check from
+scratch in about ten minutes and shows the gate catching a bug on each score.
+
 ```bash
 # 1. install (uv recommended)
 uv venv && uv pip install -e .
@@ -413,6 +416,9 @@ trace-vault 把这两件事拆成两个独立的分数，因为它们是不同�
 停下并抛出一个带类型的错误，告诉你变的是什么（换了工具、换了顺序、还是参数不同）。
 
 ### 快速开始
+
+第一次用？[手把手教程](./docs/TUTORIAL.md) 从零开始，约十分钟建出一个检查，并看着闸门在
+两个分数上各抓到一个 bug。
 
 ```bash
 # 1. 安装（推荐 uv）
