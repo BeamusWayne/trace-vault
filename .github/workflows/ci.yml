@@ -26,14 +26,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Create the virtual environment
+        run: uv venv
+
       - name: Install project (offline-by-design deps only)
-        run: uv pip install --system -e . pytest pytest-cov ruff
+        run: uv pip install -e . pytest pytest-cov ruff
 
       - name: Lint
-        run: ruff check src tests
+        run: uv run ruff check src tests
 
       - name: Run the full offline suite with coverage
-        run: pytest --cov --cov-report=term-missing --cov-fail-under=80
+        run: uv run pytest --cov --cov-report=term-missing --cov-fail-under=80
 
       - name: Prove the gate is green on the committed baseline
-        run: vault gate --baseline examples/baseline.json
+        run: uv run vault gate --baseline examples/baseline.json
