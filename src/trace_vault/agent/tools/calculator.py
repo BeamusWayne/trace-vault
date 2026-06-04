@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import ast
 import operator
+from collections.abc import Callable
 from typing import Any, ClassVar
 
 from ...errors import ToolError
 from ..world import World
 from .base import Tool, ToolResult
 
-_BINOPS = {
+_BINOPS: dict[type[ast.operator], Callable[[float, float], float]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
@@ -23,7 +24,10 @@ _BINOPS = {
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
 }
-_UNARYOPS = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+_UNARYOPS: dict[type[ast.unaryop], Callable[[float], float]] = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
 
 
 def safe_eval(expression: str) -> float:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Sequence
+from typing import Any
 
 from ..schemas.report import TrajectoryScore
 from ..schemas.scenario import ExpectedToolCall
@@ -22,7 +23,7 @@ def is_subsequence(sub: Sequence[str], seq: Sequence[str]) -> bool:
     return all(any(have == want for have in it) for want in sub)
 
 
-def _args_match(expected: dict, actual: dict) -> bool:
+def _args_match(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
     """Expected args must be present in actual (actual may carry extras)."""
     return all(key in actual and actual[key] == value for key, value in expected.items())
 

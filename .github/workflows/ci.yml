@@ -29,10 +29,13 @@ jobs:
       # astral-sh/setup-uv already creates and activates a .venv (VIRTUAL_ENV),
       # so we install straight into it (no --system) and run via `uv run`.
       - name: Install project (offline-by-design deps only)
-        run: uv pip install -e . pytest pytest-cov ruff
+        run: uv pip install -e . pytest pytest-cov ruff mypy
 
       - name: Lint
         run: uv run ruff check src tests
+
+      - name: Type check (strict)
+        run: uv run mypy
 
       - name: Run the full offline suite with coverage
         run: uv run pytest --cov --cov-report=term-missing --cov-fail-under=80

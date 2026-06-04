@@ -16,6 +16,7 @@ The last two are why the axes are gated separately.
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
 
 from ..agent.loop import Agent
@@ -43,7 +44,12 @@ def _record(scenario: Scenario, script: list[Completion]) -> Cassette:
     return cassette
 
 
-def _replay_case(scenario: Scenario, script: list[Completion], *, ledger_factory=None) -> Case:
+def _replay_case(
+    scenario: Scenario,
+    script: list[Completion],
+    *,
+    ledger_factory: Callable[[], EffectLedger] | None = None,
+) -> Case:
     cassette = _record(scenario, script)
     return Case(
         scenario=scenario,

@@ -8,6 +8,7 @@ catch, and it is *independent* of whether the run was deterministic.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from ..agent.world import World
 from ..schemas.report import FaithfulnessScore, Interval
@@ -24,7 +25,7 @@ def _ident(name: object) -> str:
         raise ValueError(f"unsafe SQL identifier in outcome check: {name!r}") from exc
 
 
-def _where(filters: dict) -> tuple[str, list]:
+def _where(filters: dict[str, Any]) -> tuple[str, list[Any]]:
     if not filters:
         return "", []
     cols = [_ident(c) for c in filters]
