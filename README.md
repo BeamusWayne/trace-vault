@@ -607,7 +607,7 @@ OpenAI 兼容适配器，同时覆盖 Ollama、vLLM、Groq。默认测试路径�
 | ledger | 不可逆副作用账本。重试或回滚时，它回放已记录的结果、而不是再跑一遍副作用，于是一笔 transfer 只触发一次。 |
 | gate | `vault gate --baseline baseline.json` 把两个分数和轨迹指标与冻结的 baseline 比对，回归即非零退出。 |
 
-完整设计与数据流见 [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)。
+完整设计与数据流见 [`docs/ARCHITECTURE.zh.md`](./docs/ARCHITECTURE.zh.md)。
 
 ### 范围
 
@@ -619,7 +619,7 @@ OpenAI 兼容适配器，同时覆盖 Ollama、vLLM、Groq。默认测试路径�
 ### 结果
 
 参考套件覆盖确定性与可信度的全部四种组合，外加一个安全场景。数字离线产出，每次 CI 由
-`vault eval --full` 复现，完整表见 [`docs/RESULTS.md`](./docs/RESULTS.md)。一个 flaky 场景在
+`vault eval --full` 复现，完整表见 [`docs/RESULTS.zh.md`](./docs/RESULTS.zh.md)。一个 flaky 场景在
 20 次回放下：
 
 | 场景 | 确定性 | pass^5 | pass@5 | 可信度 |
