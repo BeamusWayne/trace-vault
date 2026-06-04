@@ -134,9 +134,22 @@ marks the score that fell below its threshold.
 
 ## Using it on your own agent
 
-trace-vault only needs a provider that returns the next step, so it works with
-any agent. The four steps below are the whole workflow; the complete runnable
-version is [`examples/use_on_your_agent.py`](./examples/use_on_your_agent.py).
+First, the mental model. trace-vault gives you three things: a small agent loop, a
+toolset, and an in-memory world. You bring two: the model's behavior (a provider,
+or a recording of your real model) and, if your task needs them, your own tools.
+You do not run your production agent's code inside trace-vault. You reproduce its
+task here as a `Scenario`, so the run can be replayed and scored without a live
+model.
+
+The fastest way to start is to run the worked example, then change one line and
+watch the gate react:
+
+```bash
+python examples/use_on_your_agent.py     # prints a passing report, exits 0
+```
+
+The four steps below are that same example, explained. The full file is
+[`examples/use_on_your_agent.py`](./examples/use_on_your_agent.py).
 
 **1. Describe the task as data.** State the starting world, the goal, the tool
 calls you expect, and outcome checks that read real state (a row's value) rather
@@ -198,6 +211,71 @@ raise SystemExit(0 if gate.passed else 1)
 If a tool has an irreversible side effect (a charge, an email) that must fire only
 once even when the agent retries, pass `ledger_factory=EffectLedger` to the
 `Case`. See [`refund.idempotent_retry`](./src/trace_vault/suite/scenarios.py).
+
+### Bringing your own tools
+
+The built-in toolset (calculator, search, file read/write, SQLite read and insert,
+transfer) is small on purpose. For a task that needs something else, subclass
+`Tool` and register it. For offline tests, have the tool read and write the
+in-memory `world`, so faithfulness has real state to check.
+
+```python
+from trace_vault.agent import Agent
+from trace_vault.agent.tools.base import Tool, ToolRegistry, ToolResult
+
+class WeatherTool(Tool):
+    name = "weather"
+    description = "Return the forecast for a city."
+    parameters = {"type": "object",
+                  "properties": {"city": {"type": "string"}}, "required": ["city"]}
+
+    def run(self, args, world):
+        # call your real service here; for an offline test, read from `world`
+        return ToolResult(content="sunny", data={"city": args["city"]})
+
+agent = Agent(ToolRegistry([WeatherTool()]))
+```
+
+## Design notes
+
+A few decisions shape the whole tool.
+
+- **Record and replay instead of live calls.** A live model is slow, costs money,
+  and answers differently each time, none of which suits CI. Recording one run and
+  replaying it makes the check fast, free, and repeatable. The model is faked; the
+  tools still run.
+- **A real in-process world, not mocks.** Faithfulness needs a real answer to "did
+  the row get written", so the tools write to an actual SQLite database and a temp
+  folder that the checks read back. Mocking the database would only re-test what
+  the agent said.
+- **One thin provider interface.** The only thing that differs between a real
+  model, a recording, and a script is "what is the next step", so that is the
+  single method (`complete`) everything implements. It keeps trace-vault
+  model-agnostic and keeps the offline path from importing a network client.
+- **Two scores, gated apart.** Determinism and faithfulness fail for different
+  reasons and need different fixes, so a combined number loses information. Keeping
+  them separate is the one opinion the tool insists on.
+- **A small agent loop, on purpose.** The loop is about 150 lines so it is easy to
+  read and replace. The contribution is the harness around it.
+
+## FAQ
+
+**Do I have to rewrite my agent?** No. You reproduce the task as a `Scenario` and
+supply the model's behavior (a provider or a recording). trace-vault provides the
+loop, the world, and the scoring.
+
+**My agent uses tools trace-vault doesn't have.** Add them: subclass `Tool` and
+put them in the registry (see *Bringing your own tools* above). For offline tests,
+have the tool read and write the in-memory world.
+
+**Can I point it at a real model?** Yes, for recording.
+[`providers/real.py`](./src/trace_vault/providers/real.py) is an OpenAI-compatible
+adapter that also covers Ollama, vLLM, and Groq. The default test path replays the
+recording, so CI never needs a key.
+
+**Cassette or scenario?** A scenario is the task: the world, the goal, the checks.
+A cassette is one recording of the model's outputs for that task. One scenario has
+one cassette, replayed many times.
 
 ## CLI
 
@@ -373,8 +451,18 @@ GATE: FAIL  (3/7 scenario(s) below threshold)   exit 1
 
 ### 用在你自己的 Agent 上
 
-trace-vault 只需要一个「返回下一步」的 provider，所以它适用于任何 Agent。下面四步就是全部流程；
-完整可跑版见 [`examples/use_on_your_agent.py`](./examples/use_on_your_agent.py)。
+先讲清心智模型。trace-vault 给你三样东西：一个小的 agent 循环、一套工具、一个内存里的 world。
+你带两样：模型的行为（一个 provider，或一份你真实模型的录制），以及（如果你的任务需要）你自己的
+工具。你不会把生产环境的 Agent 代码塞进 trace-vault 里跑，而是把它的任务在这里复刻成一个
+`Scenario`，于是这次运行可以在没有真实模型的情况下回放、打分。
+
+最快的上手方式是先跑一遍这个完整示例，再改一行、看闸门怎么反应：
+
+```bash
+python examples/use_on_your_agent.py     # 打印一份通过的报告，退出 0
+```
+
+下面四步就是这个示例的逐步讲解。完整文件见 [`examples/use_on_your_agent.py`](./examples/use_on_your_agent.py)。
 
 **1. 把任务描述成数据。** 写清初始世界、目标、你期望的工具调用，以及读取真实状态（某行的值）、
 而非读转录的 outcome 检查。
@@ -432,6 +520,59 @@ raise SystemExit(0 if gate.passed else 1)
 
 如果某个工具有不可逆的副作用（扣款、发邮件），即使 Agent 重试也必须只触发一次，给 `Case` 传
 `ledger_factory=EffectLedger`，见 [`refund.idempotent_retry`](./src/trace_vault/suite/scenarios.py)。
+
+#### 自带工具
+
+内置工具集（calculator、search、文件读写、SQLite 读取与插入、transfer）刻意做得很小。如果你的
+任务需要别的工具，继承 `Tool` 再注册进去。做离线测试时，让工具读写内存里的 `world`，这样可信度
+检查才有真实状态可看。
+
+```python
+from trace_vault.agent import Agent
+from trace_vault.agent.tools.base import Tool, ToolRegistry, ToolResult
+
+class WeatherTool(Tool):
+    name = "weather"
+    description = "返回某城市的天气预报。"
+    parameters = {"type": "object",
+                  "properties": {"city": {"type": "string"}}, "required": ["city"]}
+
+    def run(self, args, world):
+        # 这里调用你真实的服务；做离线测试时，从 `world` 里读
+        return ToolResult(content="sunny", data={"city": args["city"]})
+
+agent = Agent(ToolRegistry([WeatherTool()]))
+```
+
+### 设计取舍
+
+有几个决定塑造了整个工具。
+
+- **录制回放，而不是实时调用。** 实时模型慢、花钱、每次答案还不一样，没一样适合 CI。把一次运行
+  录下来回放，检查就变得快、免费、可复现。模型是假的，但工具照样真跑。
+- **真实的内存 world，而不是 mock。** 可信度需要「那行到底写没写」有个真实答案，所以工具写进一个
+  真实的 SQLite 数据库和一个临时文件夹，检查再读回来。把数据库 mock 掉，只会重新测一遍 Agent 嘴上
+  说了什么。
+- **一个很薄的 provider 接口。** 真实模型、录制、脚本，三者唯一的区别就是「下一步是什么」，所以那
+  就是大家都实现的那个方法（`complete`）。它让 trace-vault 与模型无关，也让离线路径不会去 import
+  任何网络客户端。
+- **两个分数，分开卡。** 确定性和可信度栽的原因不同、修法也不同，合成一个数字就丢了信息。把它们
+  分开，是这个工具唯一坚持的主张。
+- **刻意小的 agent 循环。** 循环约 150 行，好读、好替换。贡献点是它外面那层 harness。
+
+### 常见问题
+
+**我必须重写我的 Agent 吗？** 不用。你把任务复刻成一个 `Scenario`，再提供模型的行为（一个 provider
+或一份录制）。循环、world、打分都由 trace-vault 提供。
+
+**我的 Agent 用了 trace-vault 没有的工具。** 加上去：继承 `Tool` 放进 registry（见上面的「自带工具」）。
+做离线测试时，让工具读写内存里的 world。
+
+**能对接真实模型吗？** 能，用来录制。[`providers/real.py`](./src/trace_vault/providers/real.py) 是一个
+OpenAI 兼容适配器，同时覆盖 Ollama、vLLM、Groq。默认测试路径回放的是录制，所以 CI 永远不需要 key。
+
+**cassette 和 scenario 的区别？** scenario 是任务：world、目标、检查。cassette 是这个任务里模型输出
+的一份录制。一个 scenario 对应一份 cassette，回放很多次。
 
 ### 命令行
 
