@@ -6,6 +6,7 @@ A testing harness for tool-using AI agents. Record one run, replay it offline,
 and fail CI when the agent stops behaving the same way or stops actually doing
 what it says.
 
+[![live demo](https://img.shields.io/badge/live%20demo-online-brightgreen.svg)](https://beamuswayne.github.io/trace-vault/)
 [![CI](https://github.com/BeamusWayne/trace-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/BeamusWayne/trace-vault/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![coverage](https://img.shields.io/badge/coverage-93%25-brightgreen.svg)](https://github.com/BeamusWayne/trace-vault/actions/workflows/ci.yml)
@@ -13,7 +14,7 @@ what it says.
 [![lint: ruff](https://img.shields.io/badge/lint-ruff-261230.svg)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-[English](#what-it-does) · [中文说明](#中文说明)
+[▶ Live demo](https://beamuswayne.github.io/trace-vault/) · [English](#what-it-does) · [中文说明](#中文说明)
 
 </div>
 
