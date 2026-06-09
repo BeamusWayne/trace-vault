@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>trace-vault — Determinism ≠ Faithfulness</title>
+<meta name="description" content="A record/replay reliability gate for tool-using agents. Determinism and Faithfulness as two independent, CI-gateable axes. Offline, no API key.">
+<meta property="og:title" content="trace-vault — Determinism ≠ Faithfulness">
+<meta property="og:description" content="Record one run, replay it offline, and fail CI when a tool-using agent stops behaving the same way — or stops actually doing what it says.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#11161d; --panel-2:#0e131a; --line:#1f2630;
+    --ink:#cdd7e2; --ink-strong:#f1f5f9; --muted:#7d8a99;
+    --accent:#7dd3fc; --accent-ink:#031018;
+    --ok:#4ade80; --bad:#f87171; --warn:#fbbf24;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1100px 520px at 50% -180px, rgba(125,211,252,.10), transparent 70%),
+      var(--bg);
+    color:var(--ink); font-family:var(--sans); line-height:1.65;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:0 22px}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .lang-zh{display:none}
+
+  /* nav */
+  nav{display:flex; align-items:center; justify-content:space-between;
+      padding:20px 0; border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--mono); font-weight:600; color:var(--ink-strong); letter-spacing:.2px}
+  .brand .dot{color:var(--accent)}
+  .nav-right{display:flex; align-items:center; gap:14px}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+  .seg button{
+    appearance:none; background:transparent; color:var(--muted); border:0;
+    font:inherit; font-size:13px; padding:5px 12px; cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink); font-weight:600}
+  .ghlink{font-family:var(--mono); font-size:13px; color:var(--muted)}
+  .ghlink:hover{color:var(--ink-strong)}
+
+  /* hero */
+  header.hero{padding:74px 0 40px}
+  .eyebrow{font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:.5px; margin:0 0 14px}
+  h1{font-size:clamp(38px,7vw,62px); line-height:1.04; margin:0 0 22px;
+     color:var(--ink-strong); font-weight:740; letter-spacing:-.02em}
+  h1 .neq{color:var(--accent); font-weight:500; padding:0 .12em}
+  .lead{font-size:clamp(17px,2.4vw,20px); color:var(--ink); max-width:660px; margin:0 0 26px}
+  .badges{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 28px}
+  .pill{font-family:var(--mono); font-size:12px; color:var(--muted);
+        border:1px solid var(--line); border-radius:999px; padding:4px 11px; background:var(--panel-2)}
+  .pill.green{color:var(--ok); border-color:rgba(74,222,128,.3)}
+  .cta{display:flex; flex-wrap:wrap; gap:12px}
+  .btn{display:inline-flex; align-items:center; gap:7px; font-weight:600; font-size:15px;
+       padding:11px 18px; border-radius:10px; border:1px solid var(--line)}
+  .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.07); text-decoration:none}
+  .btn.ghost{color:var(--ink-strong); background:var(--panel)}
+  .btn.ghost:hover{border-color:var(--accent); text-decoration:none}
+
+  /* sections */
+  section{padding:46px 0; border-top:1px solid var(--line)}
+  h2{font-size:clamp(23px,3.4vw,30px); margin:0 0 8px; color:var(--ink-strong); letter-spacing:-.01em}
+  .sub{color:var(--muted); margin:0 0 26px; max-width:640px}
+
+  /* terminal */
+  .term{background:var(--panel-2); border:1px solid var(--line); border-radius:12px;
+        overflow:hidden; margin:0 0 18px; box-shadow:0 18px 50px -30px rgba(0,0,0,.8)}
+  .term-bar{display:flex; align-items:center; gap:7px; padding:11px 14px;
+            background:rgba(255,255,255,.02); border-bottom:1px solid var(--line)}
+  .term-bar i{width:11px; height:11px; border-radius:50%; display:inline-block}
+  .term-bar i:nth-child(1){background:#ff5f57} .term-bar i:nth-child(2){background:#febc2e} .term-bar i:nth-child(3){background:#28c840}
+  .term-bar span{margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--muted)}
+  pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--mono);
+      font-size:13px; line-height:1.55; color:var(--ink); -webkit-overflow-scrolling:touch}
+  pre .cmd{color:var(--ink-strong)} pre .pr{color:var(--accent)}
+  pre .ok{color:var(--ok); font-weight:600} pre .bad{color:var(--bad); font-weight:600}
+  pre .warn{color:var(--warn)} pre .dim{color:var(--muted)}
+  pre .gate-ok{color:var(--ok); font-weight:700} pre .gate-bad{color:var(--bad); font-weight:700}
+  .cap{color:var(--muted); font-size:14px; margin:0 0 30px}
+
+  /* cards */
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:0 0 20px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px}
+  .card h3{margin:0 0 4px; font-size:17px; color:var(--ink-strong)}
+  .card .q{color:var(--accent); font-size:14px; margin:0 0 10px; font-style:italic}
+  .card p{margin:0; color:var(--ink); font-size:14.5px}
+  .punch{border-left:2px solid var(--accent); padding:2px 0 2px 16px; color:var(--ink-strong);
+         font-size:16px; margin:6px 0 0}
+
+  /* results table */
+  table{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:13.5px; margin:0 0 16px}
+  th,td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:center}
+  th{color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.4px}
+  td:first-child,th:first-child{text-align:left; color:var(--ink-strong)}
+  td .lo{color:var(--bad)} td .hi{color:var(--ok)}
+  .note{color:var(--muted); font-size:14px; margin:0}
+
+  /* how */
+  .steps{display:grid; gap:14px}
+  .step{display:grid; grid-template-columns:120px 1fr; gap:18px; align-items:baseline;
+        padding:14px 0; border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .k{font-family:var(--mono); color:var(--accent); font-size:15px}
+  .step p{margin:0; color:var(--ink); font-size:14.5px}
+
+  footer{padding:40px 0 60px; border-top:1px solid var(--line); color:var(--muted); font-size:14px}
+  footer .row{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; justify-content:space-between}
+  footer .tags{font-family:var(--mono); font-size:13px}
+
+  @media(max-width:680px){
+    .cards{grid-template-columns:1fr}
+    .step{grid-template-columns:1fr; gap:4px}
+    header.hero{padding:54px 0 30px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <div class="brand">trace<span class="dot">·</span>vault</div>
+    <div class="nav-right">
+      <div class="seg" role="group" aria-label="language">
+        <button id="b-en" aria-pressed="true" onclick="setLang('en')">EN</button>
+        <button id="b-zh" aria-pressed="false" onclick="setLang('zh')">中文</button>
+      </div>
+      <a class="ghlink" href="https://github.com/BeamusWayne/trace-vault">GitHub ↗</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <p class="eyebrow" data-en="A reliability gate for tool-using agents" data-zh="面向工具调用型 Agent 的可靠性闸门">A reliability gate for tool-using agents</p>
+    <h1>
+      <span data-en="Determinism" data-zh="确定性">Determinism</span>
+      <span class="neq">≠</span>
+      <span data-en="Faithfulness" data-zh="可信度">Faithfulness</span>
+    </h1>
+    <p class="lead" data-en="Record one run, replay it offline, and fail CI when a tool-using agent stops behaving the same way — or stops actually doing what it says. No API key. A few seconds." data-zh="把一次运行录下来,离线回放;当工具调用型 Agent 不再走同样的路、或不再真的做它声称做的事时,让 CI 失败。无需 API key,几秒跑完。">Record one run, replay it offline, and fail CI when a tool-using agent stops behaving the same way — or stops actually doing what it says. No API key. A few seconds.</p>
+    <div class="badges">
+      <span class="pill green">CI passing</span>
+      <span class="pill">Python 3.11+</span>
+      <span class="pill">coverage 93%</span>
+      <span class="pill">mypy --strict</span>
+      <span class="pill">ruff</span>
+      <span class="pill">MIT</span>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/BeamusWayne/trace-vault"><span data-en="View on GitHub" data-zh="在 GitHub 查看">View on GitHub</span> ↗</a>
+      <a class="btn ghost" href="https://github.com/BeamusWayne/trace-vault/blob/main/docs/TUTORIAL.md"><span data-en="Read the tutorial" data-zh="阅读教程">Read the tutorial</span> ↗</a>
+    </div>
+  </header>
+
+  <section>
+    <h2 data-en="See the gate run" data-zh="看闸门跑一遍">See the gate run</h2>
+    <p class="sub" data-en="Four committed scenarios pass — offline, no key. Add three regressions and the gate catches them on two different axes." data-zh="四个已提交场景通过 —— 离线、无 key。注入三个回归,闸门在两个不同的轴上分别抓住。">Four committed scenarios pass — offline, no key. Add three regressions and the gate catches them on two different axes.</p>
+
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>vault gate — exit 0</span></div>
+<pre><span class="pr">$</span> <span class="cmd">vault gate -b examples/baseline.json</span>
+
+trace-vault gate · 4 scenarios
+
+scenario                     determ.  faithful.    traj.  verdict
+-----------------------------------------------------------------
+booking.write_room             1.00       1.00     1.00   <span class="ok">PASS</span>
+research.cite_source           1.00       1.00     1.00   <span class="ok">PASS</span>
+refund.transfer_once           1.00       1.00     1.00   <span class="ok">PASS</span>
+refund.idempotent_retry        1.00       1.00     1.00   <span class="ok">PASS</span>
+
+<span class="gate-ok">GATE: PASS  (4/4 scenarios within thresholds)   exit 0</span></pre>
+    </div>
+
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>vault gate --full — exit 1</span></div>
+<pre><span class="pr">$</span> <span class="cmd">vault gate -b examples/baseline.json --full</span>
+
+trace-vault gate · 7 scenarios
+
+scenario                     determ.  faithful.    traj.  verdict
+-----------------------------------------------------------------
+booking.write_room             1.00       1.00     1.00   <span class="ok">PASS</span>
+research.cite_source           1.00       1.00     1.00   <span class="ok">PASS</span>
+refund.transfer_once           1.00       1.00     1.00   <span class="ok">PASS</span>
+refund.idempotent_retry        1.00       1.00     1.00   <span class="ok">PASS</span>
+report.flaky_plan              <span class="warn">0.60*</span>      1.00     1.00   <span class="bad">FAIL</span>
+booking.unfaithful_write       1.00       <span class="warn">0.00*</span>    1.00   <span class="bad">FAIL</span>
+payment.injection              1.00       <span class="warn">0.00*</span>    1.00   <span class="bad">FAIL</span>
+
+<span class="gate-bad">GATE: FAIL  (3/7 scenario(s) below threshold)   exit 1</span>
+
+<span class="dim">  x report.flaky_plan: determinism 0.60 &lt; 1.00
+  x booking.unfaithful_write: faithfulness 0.00 &lt; 1.00
+  x payment.injection: faithfulness 0.00 &lt; 1.00</span></pre>
+    </div>
+    <p class="cap" data-en="flaky_plan breaks on determinism (it can't repeat its path); the other two break on faithfulness (they reliably leave the real table empty). The * marks the axis that fell below threshold." data-zh="flaky_plan 栽在确定性上(它无法复现自己的路径);另外两个栽在可信度上(它们稳定地让真表保持空)。* 标出跌破阈值的那个轴。">flaky_plan breaks on determinism (it can't repeat its path); the other two break on faithfulness (they reliably leave the real table empty). The * marks the axis that fell below threshold.</p>
+  </section>
+
+  <section>
+    <h2 data-en="Why two scores, gated apart" data-zh="为什么是两个分数,还要分开卡">Why two scores, gated apart</h2>
+    <p class="sub" data-en="They are genuinely different problems with different fixes. A combined number loses information." data-zh="它们是不同的问题、有不同的修法。一个合并的数字会丢掉信息。">They are genuinely different problems with different fixes. A combined number loses information.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Determinism</h3>
+        <p class="q" data-en="Does the agent take the same path every time?" data-zh="Agent 每次是不是走相同的路径?">Does the agent take the same path every time?</p>
+        <p data-en="Replay N times and compare the tool-call sequence. Reported as pass^k / pass@k with a seeded bootstrap CI, so sampling noise isn't mistaken for a regression." data-zh="回放 N 次,比对工具调用序列。以 pass^k / pass@k 加种子化自助置信区间报告,让采样抖动不会被误判成回归。">Replay N times and compare the tool-call sequence. Reported as pass^k / pass@k with a seeded bootstrap CI, so sampling noise isn't mistaken for a regression.</p>
+      </div>
+      <div class="card">
+        <h3>Faithfulness</h3>
+        <p class="q" data-en="Did it actually change the data it claims to?" data-zh="它有没有真的改动它声称改动的数据?">Did it actually change the data it claims to?</p>
+        <p data-en="Tools run for real against an in-memory SQLite database and a temp folder. The check reads that state directly — never the transcript." data-zh="工具对内存 SQLite 数据库和临时文件夹真实执行。检查直接读这个状态 —— 从不看转录。">Tools run for real against an in-memory SQLite database and a temp folder. The check reads that state directly — never the transcript.</p>
+      </div>
+    </div>
+    <p class="punch" data-en="An agent can be perfectly reproducible and reliably wrong, or correct once on a run it can't repeat. A single combined score would hide one of them." data-zh="一个 Agent 可以完全可复现却稳定地做错,也可能在一次无法重来的运行里靠运气做对。一个合并的分数会盖掉其中一个。">An agent can be perfectly reproducible and reliably wrong, or correct once on a run it can't repeat. A single combined score would hide one of them.</p>
+  </section>
+
+  <section>
+    <h2 data-en="The two scores are uncorrelated" data-zh="两个分数互不相关">The two scores are uncorrelated</h2>
+    <p class="sub" data-en="One flaky scenario and one unfaithful scenario, over 20 replays — each caught by a different score." data-zh="一个 flaky 场景和一个不忠实场景,20 次回放下 —— 各由不同的分数抓到。">One flaky scenario and one unfaithful scenario, over 20 replays — each caught by a different score.</p>
+    <table>
+      <thead><tr><th>scenario</th><th>determinism</th><th>pass^5</th><th>pass@5</th><th>faithfulness</th></tr></thead>
+      <tbody>
+        <tr><td>report.flaky_plan</td><td><span class="lo">0.60</span></td><td>0.051</td><td>0.996</td><td><span class="hi">1.00</span></td></tr>
+        <tr><td>booking.unfaithful_write</td><td><span class="hi">1.00</span></td><td>1.000</td><td>1.000</td><td><span class="lo">0.00</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note" data-en="pass@5 is the chance at least one of five runs matches; pass^5 is the chance all five do. A flaky agent scores a healthy pass@5 (0.996) and a near-zero pass^5 (0.051) — and the second number is closer to what you feel in production." data-zh="pass@5 是五次里至少一次一致的概率;pass^5 是五次全一致的概率。flaky 的 Agent 能有好看的 pass@5(0.996)和接近零的 pass^5(0.051)—— 后者更接近你在生产里的真实体感。">pass@5 is the chance at least one of five runs matches; pass^5 is the chance all five do. A flaky agent scores a healthy pass@5 (0.996) and a near-zero pass^5 (0.051) — and the second number is closer to what you feel in production.</p>
+  </section>
+
+  <section>
+    <h2 data-en="How it works" data-zh="工作原理">How it works</h2>
+    <p class="sub" data-en="Three parts kept separate — which is what makes offline replay possible." data-zh="三个部分各自分开 —— 这正是离线回放得以成立的原因。">Three parts kept separate — which is what makes offline replay possible.</p>
+    <div class="steps">
+      <div class="step"><div class="k">Provider</div><p data-en="One thin interface for what's the next step. A real LLM when recording; a FakeProvider or a recording when replaying. The offline path never imports a network client." data-zh="一个很薄的接口,只回答“下一步是什么”。录制时是真实 LLM;回放时是 FakeProvider 或一份录制。离线路径从不 import 网络客户端。">One thin interface for what's the next step. A real LLM when recording; a FakeProvider or a recording when replaying. The offline path never imports a network client.</p></div>
+      <div class="step"><div class="k">Cassette</div><p data-en="One run's model outputs, saved as YAML with volatile fields (ids, timestamps, UUIDs) normalized out so it still matches on replay." data-zh="一次运行里模型的输出,存成 YAML,并把易变字段(id、时间戳、UUID)归一化掉,这样回放时仍能匹配。">One run's model outputs, saved as YAML with volatile fields (ids, timestamps, UUIDs) normalized out so it still matches on replay.</p></div>
+      <div class="step"><div class="k">World</div><p data-en="An in-memory SQLite database and a temp folder the tools really read and write. This is the ground truth that faithfulness checks against." data-zh="一个内存 SQLite 数据库和一个临时文件夹,工具真实地读写。这就是可信度检查所对照的事实。">An in-memory SQLite database and a temp folder the tools really read and write. This is the ground truth that faithfulness checks against.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="row">
+      <span class="tags" data-en="Offline · No API key · Deterministic" data-zh="离线 · 无需 API key · 确定性">Offline · No API key · Deterministic</span>
+      <span>MIT © 2026 <a href="https://github.com/BeamusWayne">Beamus Wayne</a> · <a href="https://github.com/BeamusWayne/trace-vault">trace-vault ↗</a></span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  function setLang(lang){
+    var root=document.documentElement;
+    root.setAttribute('data-lang', lang);
+    root.setAttribute('lang', lang==='zh' ? 'zh-CN' : 'en');
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      var t = (lang==='zh') ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+      if(t!=null) el.textContent = t;
+    });
+    var en=document.getElementById('b-en'), zh=document.getElementById('b-zh');
+    en.setAttribute('aria-pressed', String(lang==='en'));
+    zh.setAttribute('aria-pressed', String(lang==='zh'));
+    try{ localStorage.setItem('tv-lang', lang); }catch(e){}
+  }
+  (function init(){
+    var saved=null;
+    try{ saved=localStorage.getItem('tv-lang'); }catch(e){}
+    var lang = saved || ((navigator.language||'').toLowerCase().indexOf('zh')===0 ? 'zh' : 'en');
+    setLang(lang);
+  })();
+</script>
+</body>
+</html>
