@@ -1,6 +1,6 @@
 [project]
 name = "trace-vault"
-version = "0.1.0"
+version = "0.2.0"
 description = "A model-agnostic record/replay reliability gate for tool-using agents — scores Determinism and Faithfulness as two independent, CI-gateable axes."
 readme = "README.md"
 requires-python = ">=3.11"

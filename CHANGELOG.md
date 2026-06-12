@@ -3,6 +3,20 @@
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] — 2026-06-13
+
+trace-vault joins the [Agent Trust Layer](https://github.com/BeamusWayne/agent-trust-layer)
+ecosystem.
+
+### Added
+- **`vault gate --trust-report <file>`** — emit the gate verdict as an Agent
+  Trust Report v0 (`{verdict, checks[]}`): one `determinism.<scenario>` /
+  `faithfulness.<scenario>` / `trajectory.<scenario>` check per axis per
+  scenario, same thresholds and baseline-regression tolerance as the gate
+  itself (a drift between the two is pinned by the test suite). The same
+  cross-tool JSON Alfred's `ledger verify --trust-report` and NightWatch's
+  `attest --trust-report` produce — one CI consumer for all three gates.
+
 ## [0.1.0] — 2026-06-04
 
 Initial release.

@@ -21,6 +21,7 @@ import typer
 from . import __version__
 from .agent import Agent, default_registry
 from .gate import Baseline, load_baseline, render_gate, run_gate
+from .gate.trust_report import to_trust_report
 from .suite import full_suite, good_suite
 
 app = typer.Typer(
@@ -86,12 +87,22 @@ def gate(
     runs: int = typer.Option(20, help="Replays per scenario."),
     k: int = typer.Option(5, help="k for pass^k / pass@k."),
     seed: int = typer.Option(0, help="Bootstrap / sampling seed."),
+    trust_report: Path | None = typer.Option(
+        None,
+        "--trust-report",
+        help="Also write the verdict as a cross-tool Trust Report v0 JSON.",
+    ),
 ) -> None:
     """Run the reference suite and gate it against a frozen baseline."""
     base = load_baseline(baseline)
     cases = full_suite() if full else good_suite()
     with tempfile.TemporaryDirectory() as tmp:
         report = run_gate(cases, _agent(), base, root=tmp, runs=runs, k=k, seed=seed)
+    if trust_report is not None:
+        suite_id = "reference-suite-full" if full else "reference-suite"
+        out = to_trust_report(report, base, version=__version__, suite_id=suite_id)
+        trust_report.write_text(out.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        typer.echo(f"trust report -> {trust_report}", err=True)
     _echo_report(render_gate(report))
     raise typer.Exit(0 if report.passed else 1)
 

@@ -290,6 +290,7 @@ one cassette, replayed many times.
 |---------|--------------|
 | `vault gate -b baseline.json` | run the good suite, compare to the baseline, exit 0 or 1; this is what CI runs |
 | `vault gate -b baseline.json --full` | also include the deliberately broken scenarios, which are expected to fail |
+| `vault gate -b baseline.json --trust-report r.json` | also write the verdict as a cross-tool [Trust Report v0](https://github.com/BeamusWayne/agent-trust-layer) |
 | `vault eval [--full]` | run a suite and print the report without gating |
 | `vault demo` | run the good suite, then the full suite, to show both scores side by side |
 | `vault version` | print the version |
@@ -297,6 +298,18 @@ one cassette, replayed many times.
 Common flags: `--runs N` (replays per scenario, default 20), `--k K` (for
 `pass^k` / `pass@k`), `--seed S`. Output is colored on a terminal and plain when
 piped or under `NO_COLOR`.
+
+## Part of the Agent Trust Layer
+
+trace-vault is the **Gate** leg of the [Agent Trust Layer](https://github.com/BeamusWayne/agent-trust-layer):
+[Alfred](https://github.com/BeamusWayne/Alfred) **runs** autonomously under a
+machine verify gate and signs its own receipt;
+[NightWatch](https://github.com/BeamusWayne/NightWatch) **records** any
+session as an independent black box; trace-vault **gates** the agent's
+behaviour offline in CI. All three emit the same
+[Agent Trust Report v0](https://github.com/BeamusWayne/agent-trust-layer/blob/main/spec/TRUST-REPORT.md)
+(`{verdict, checks[]}` — here: one `determinism.*` / `faithfulness.*` /
+`trajectory.*` check per scenario), so one CI consumer reads every gate.
 
 ## Architecture
 
