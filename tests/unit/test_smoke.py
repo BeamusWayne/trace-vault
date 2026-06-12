@@ -11,7 +11,7 @@ from trace_vault.schemas import Completion, Message, ToolCall
 
 @pytest.mark.unit
 def test_version_is_exposed() -> None:
-    assert tv.__version__ == "0.1.0"
+    assert tv.__version__ == "0.2.0"
 
 
 @pytest.mark.unit
